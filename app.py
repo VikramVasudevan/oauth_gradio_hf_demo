@@ -25,10 +25,22 @@ def read_root(request: Request):
         return RedirectResponse(url="/login")
 
 # Login route
+# @app.get('/login')
+# async def login(request: Request):
+#     redirect_uri = request.url_for('auth_callback')
+#     return await oauth.google.authorize_redirect(request, redirect_uri)
+
+import os
+
 @app.get('/login')
 async def login(request: Request):
     redirect_uri = request.url_for('auth_callback')
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+    # Force https in prod (HF Spaces)
+    if "HF_SPACE" in os.environ:  # HF sets env vars like HF_SPACE
+        redirect_uri = redirect_uri.replace(scheme="https")
+
+    return await oauth.google.authorize_redirect(request, str(redirect_uri))
 
 # Auth callback route
 @app.get('/auth/callback')
