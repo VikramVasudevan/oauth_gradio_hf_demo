@@ -15,7 +15,8 @@ app = FastAPI()
 from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
 
 # Force redirect from http:// → https://
-app.add_middleware(HTTPSRedirectMiddleware)
+if "HF_SPACE" in os.environ:
+    app.add_middleware(HTTPSRedirectMiddleware)
 
 app.add_middleware(
     SessionMiddleware,
