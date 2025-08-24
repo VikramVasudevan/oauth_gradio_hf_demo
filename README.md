@@ -4,4 +4,5 @@ app_file: app.py
 sdk: gradio
 sdk_version: 5.43.1
 python_version: 3.13
+hf_oauth: true
 ---
