@@ -12,6 +12,11 @@ dotenv.load_dotenv()
 
 app = FastAPI()
 
+from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+
+# Force redirect from http:// → https://
+app.add_middleware(HTTPSRedirectMiddleware)
+
 app.add_middleware(
     SessionMiddleware,
     secret_key="your-secret-key",
