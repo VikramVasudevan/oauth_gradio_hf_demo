@@ -3,6 +3,7 @@ import gradio as gr
 from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 import uvicorn
 from auth import oauth
 from gradio_ui import main_app
@@ -12,19 +13,15 @@ dotenv.load_dotenv()
 
 app = FastAPI()
 
-@app.middleware("http")
-async def enforce_https(request: Request, call_next):
-    # Allow local dev without HTTPS
-    if request.url.hostname in ("127.0.0.1", "localhost"):
+# --- Middleware to force HTTPS on HF ---
+class HttpsRedirectMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        if request.url.scheme == "http" and request.url.hostname.endswith(".hf.space"):
+            url = str(request.url).replace("http://", "https://", 1)
+            return RedirectResponse(url)
         return await call_next(request)
 
-    # On HF, check forwarded proto
-    proto = request.headers.get("x-forwarded-proto")
-    if proto and proto != "https":
-        url = request.url.replace(scheme="https")
-        return RedirectResponse(url)
-
-    return await call_next(request)
+app.add_middleware(HttpsRedirectMiddleware)
 
 app.add_middleware(
     SessionMiddleware,
@@ -44,7 +41,7 @@ async def root(request: Request):
     url = f"{base_url}/secure"
     url = url.replace("http://", "https://")  # patch for HF mixed-content issue
     return RedirectResponse(url)
-    
+
 @app.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for("auth_callback")
