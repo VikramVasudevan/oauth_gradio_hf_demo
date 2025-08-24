@@ -19,6 +19,10 @@ app.add_middleware(
     https_only=True,
 )
 
+@app.get("/")
+async def root():
+    return RedirectResponse("/secure")
+
 @app.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for("auth_callback")
