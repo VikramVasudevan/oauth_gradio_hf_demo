@@ -35,14 +35,16 @@ app.add_middleware(
 
 @app.get("/")
 async def root(request: Request):
+    # Localhost → relative path (safe, avoids https redirect loop)
     if request.url.hostname in ("127.0.0.1", "localhost"):
-        return RedirectResponse("/secure")
-    
-    # On HF, build an absolute HTTPS redirect
-    url = request.url_for("secure")  # point to /secure route
-    url = url.replace("http://", "https://")
-    return RedirectResponse(url)
+        return RedirectResponse(url="/secure")
 
+    # HF Spaces (or anywhere else) → force HTTPS absolute path
+    base_url = str(request.base_url).rstrip("/")
+    url = f"{base_url}/secure"
+    url = url.replace("http://", "https://")  # patch for HF mixed-content issue
+    return RedirectResponse(url)
+    
 @app.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for("auth_callback")
