@@ -1,31 +1,44 @@
 import gradio as gr
+import time
 
-# ------------------------------------------------------------
-# Function that checks HF authentication
-# ------------------------------------------------------------
+# -------------------------------
+# Function to check HF login
+# -------------------------------
 def protected_app(request: gr.Request):
-    """
-    request.client.is_authenticated is True if the user is logged into HF
-    """
-    if not getattr(request.client, "is_authenticated", False):
-        return "Access denied. Please log in via Hugging Face."
+    # tiny delay to ensure HF client is populated
+    time.sleep(0.2)
 
-    username = getattr(request.client, "username", "Unknown")
-    return f"Hello {username}! You are logged in via Hugging Face."
+    if getattr(request.client, "is_authenticated", False):
+        username = getattr(request.client, "username", "Unknown")
+        return f"Hello {username}! You are logged in via Hugging Face."
+    else:
+        return (
+            "You are not logged in. "
+            "Please open this Space directly at "
+            "https://huggingface.co/spaces/vikramvasudevan/oauth_gradio_hf_demo "
+            "and log in."
+        )
 
-# ------------------------------------------------------------
+# -------------------------------
 # Build the Gradio app
-# ------------------------------------------------------------
+# -------------------------------
 with gr.Blocks() as demo:
-    gr.Markdown("## Protected Gradio App (Hugging Face Auth)")
-    
-    # Output box to show welcome message
+    gr.Markdown("## Hugging Face Protected App")
+
     output = gr.Textbox(label="Welcome message", interactive=False)
-    
-    # Load the message when the app starts
+    refresh_btn = gr.Button("Refresh Login Status")
+    logout_btn = gr.Button("Logout from HF")
+
+    # Update message on load
     demo.load(fn=protected_app, inputs=None, outputs=output)
 
-# ------------------------------------------------------------
-# Launch the app (HF Spaces handles the server automatically)
-# ------------------------------------------------------------
+    # Refresh login status when button clicked
+    refresh_btn.click(fn=protected_app, inputs=None, outputs=output)
+
+    # Open HF logout page when logout clicked
+    logout_btn.click(lambda: "https://huggingface.co/logout", None, None, _js="(url)=>window.open(url, '_self')")
+
+# -------------------------------
+# Launch (HF handles the server)
+# -------------------------------
 demo.launch()
