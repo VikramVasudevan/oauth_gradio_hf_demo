@@ -39,10 +39,10 @@ async def root(request: Request):
         return RedirectResponse("/secure")
     
     # On HF, build an absolute HTTPS redirect
-    url = request.url_for("secure_home")  # point to /secure route
+    url = request.url_for("secure")  # point to /secure route
     url = url.replace("http://", "https://")
     return RedirectResponse(url)
-    
+
 @app.get("/login")
 async def login(request: Request):
     redirect_uri = request.url_for("auth_callback")
