@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 from auth import oauth, GOOGLE_CLIENT_ID
-from gradio_ui import login_page, login_required_app
+from gradio_ui import login_page, main_app, secured_app
 
 # Add this to handle .env file loading if not already done
 import dotenv
@@ -72,19 +72,11 @@ def auth_dependency(request: Request):
     return user.get('email')
 
 # Mount Gradio app with dependency
-protected_gradio_app = login_required_app()
+main_gradio_app = main_app()
 app = gr.mount_gradio_app(
     app,
-    protected_gradio_app,
+    main_gradio_app,
     path="/gradio",
-    auth_dependency=auth_dependency,
-)
-
-login_page = login_page()
-app = gr.mount_gradio_app(
-    app,
-    login_page,
-    path="/login-gradio",
     auth_dependency=auth_dependency,
 )
 
@@ -93,7 +85,7 @@ app = gr.mount_gradio_app(
 async def logout(request: Request):
     # request.session.pop('user', None)
     request.session['user'] = None
-    return RedirectResponse(url="/login-gradio")
+    return RedirectResponse(url="/gradio")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=7860)
