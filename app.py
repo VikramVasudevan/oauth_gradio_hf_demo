@@ -12,7 +12,14 @@ dotenv.load_dotenv()
 
 # The main FastAPI app
 app = FastAPI()
-app.add_middleware(SessionMiddleware, secret_key="your-secret-key") # Change this!
+# app.add_middleware(SessionMiddleware, secret_key="your-secret-key") # Change this!
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="your-secret-key",
+    same_site="none",
+    https_only=True
+)
+
 
 # Define a simple home page or an authentication page
 @app.get("/")
