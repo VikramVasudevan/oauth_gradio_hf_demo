@@ -36,7 +36,7 @@ with gr.Blocks() as demo:
     refresh_btn.click(fn=protected_app, inputs=None, outputs=output)
 
     # Open HF logout page when logout clicked
-    logout_btn.click(lambda: "https://huggingface.co/logout", None, None, _js="(url)=>window.open(url, '_self')")
+    logout_btn.click(lambda: "https://huggingface.co/logout", None, None, js="(url)=>window.open(url, '_self')")
 
 # -------------------------------
 # Launch (HF handles the server)
