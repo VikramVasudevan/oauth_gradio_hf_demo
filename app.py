@@ -12,11 +12,19 @@ dotenv.load_dotenv()
 
 app = FastAPI()
 
-from starlette.middleware.httpsredirect import HTTPSRedirectMiddleware
+@app.middleware("http")
+async def enforce_https(request: Request, call_next):
+    # Allow local dev without HTTPS
+    if request.url.hostname in ("127.0.0.1", "localhost"):
+        return await call_next(request)
 
-# Force redirect from http:// → https://
-if "HF_SPACE" in os.environ:
-    app.add_middleware(HTTPSRedirectMiddleware)
+    # On HF, check forwarded proto
+    proto = request.headers.get("x-forwarded-proto")
+    if proto and proto != "https":
+        url = request.url.replace(scheme="https")
+        return RedirectResponse(url)
+
+    return await call_next(request)
 
 app.add_middleware(
     SessionMiddleware,
